@@ -1,0 +1,33 @@
+service: big-mouth
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: us-east-2
+  profile: default
+  iamRoleStatements:
+    - Effect: Allow
+      Action: dynamodb:scan
+      Resource:
+        - 
+        
+
+functions:
+  get-index:
+    handler: functions/get-index.handler
+    events:
+      - http:
+          path: /
+          method: get
+
+  get-restaurants:
+    handler: functions/get-restaurants
+    events:
+      - http:
+          path: /restaurants/
+          method: get
+    enviroment:
+      DEFAULT_RESTAURANTS: 10
+      TABLE_NAME: restaurants
