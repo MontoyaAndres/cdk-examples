@@ -18,10 +18,10 @@ export class SessionStoreExampleStack extends cdk.Stack {
     });
 
     const layer = new lambda.LayerVersion(this, 'session-store-layer', {
-      code: lambda.Code.fromAsset('src/resources'),
+      code: lambda.Code.fromAsset('src/layers'),
       compatibleRuntimes: [lambda.Runtime.NODEJS_12_X],
     });
-    layer.addPermission('remote-account-grant', { accountId: '648594647853' });
+    /* layer.addPermission('remote-account-grant', { accountId: '648594647853' }); */
 
     const createSessionFunction = new lambda.Function(
       this,
