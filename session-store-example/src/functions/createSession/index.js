@@ -1,7 +1,7 @@
 const uuidv4 = require('uuid/v4');
 const DynamoDB = require('aws-sdk/clients/dynamodb');
 
-const { makeHandler } = require('utils');
+const { makeHandler } = require('/opt/utils');
 
 const dynamodb = new DynamoDB.DocumentClient();
 
