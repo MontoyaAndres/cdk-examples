@@ -1,4 +1,4 @@
-const uuidv4 = require('uuid/v4');
+const uuidv4 = require('uuid');
 const DynamoDB = require('aws-sdk/clients/dynamodb');
 
 const { makeHandler } = require('/opt');
