@@ -1,0 +1,79 @@
+service: session-store-node
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  region: us-east-2
+  profile: default
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:BatchWriteItem'
+        - 'dynamodb:DeleteItem'
+        - 'dynamodb:GetItem'
+        - 'dynamodb:PutItem'
+        - 'dynamodb:Query'
+      Resource:
+        - Fn::GetAtt:
+          - SessionStoreTable
+          - Arn
+        - Fn::Join:
+          - '/'
+          - - Fn::GetAtt:
+              - SessionStoreTable
+              - Arn
+            - 'index'
+            - 'UserIndex'
+  environment:
+    TABLE_NAME: {
+      Ref: SessionStoreTable
+    }
+    INDEX_NAME: 'UserIndex'
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+
+functions:
+  createSession:
+    handler: handlers/createSession.handler
+    events:
+      - http:
+          path: sessions
+          method: post
+  getSession:
+    handler: handlers/getSession.handler
+    events:
+      - http:
+          path: sessions
+          method: get
+  deleteSessionsForUser:
+    handler: handlers/deleteSessionsForUser.handler
+    events:
+      - http:
+          path: sessions/{username}
+          method: delete
+
+resources:
+  Resources:
+    SessionStoreTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: 'SessionId'
+            AttributeType: 'S'
+          - AttributeName: 'Username'
+            AttributeType: 'S'
+        KeySchema:
+          - AttributeName: 'SessionId'
+            KeyType: 'HASH'
+        BillingMode: 'PAY_PER_REQUEST'
+        GlobalSecondaryIndexes:
+          - IndexName: 'UserIndex'
+            KeySchema:
+              - AttributeName: 'Username'
+                KeyType: 'HASH'
+            Projection:
+              ProjectionType: 'KEYS_ONLY'
+        TimeToLiveSpecification:
+          AttributeName: 'TTL'
+          Enabled: true
