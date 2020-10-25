@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "aws-sdk": "^2.778.0",
+    "serverless-iam-roles-per-function": "^2.0.2",
+    "serverless-webpack": "^5.3.5",
+    "webpack": "^5.2.0"
+  },
+  "dependencies": {
+    "remove": "^0.1.5"
+  }
+}
