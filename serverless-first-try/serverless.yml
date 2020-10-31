@@ -7,6 +7,8 @@ provider:
   profile: serverless-first-try
   stage: dev
   region: us-east-2
+  apiGateway:
+    shouldStartNameWithService: true
   environment:
     tableName: ${self:custom.tableName}
     bucketName: ${self:custom.bucketName}
@@ -17,7 +19,28 @@ provider:
         - dynamodb:PutItem
         - s3:GetObject
         - s3:PutObject
+        - ses:*
       Resource: "*"
+  apiKeys:
+    - free:
+      - MyFreeApiKey
+    - paid:
+      - MyPaidApiKey
+  usagePlan:
+    - free:
+        quota:
+          limit: 1000
+          period: MONTH
+        throttle:
+          rateLimit: 5
+          burstLimit: 20
+    - paid:
+        quota:
+          limit: 10000
+          period: MONTH
+        throttle:
+          rateLimit: 50
+          burstLimit: 200
 
 plugins:
   - serverless-webpack
@@ -37,6 +60,7 @@ functions:
           path: get-user/{id}
           method: GET
           cors: true
+          private: true
   getPlayerScore:
     handler: lambdas/endpoints/getPlayerScore.handler
     events:
@@ -64,6 +88,13 @@ functions:
       - http:
           path: get-file/{fileName}
           method: GET
+          cors: true
+  sendEmail:
+    handler: lambdas/endpoints/sendEmail.handler
+    events:
+      - http:
+          path: send-email
+          method: POST
           cors: true
 
 resources:
