@@ -20,6 +20,9 @@ provider:
         - s3:GetObject
         - s3:PutObject
         - ses:*
+        - sns:SetSMSAttributes
+        - sns:Publish
+        - comprehend:*
       Resource: "*"
   apiKeys:
     - free:
@@ -96,6 +99,20 @@ functions:
           path: send-email
           method: POST
           cors: true
+  sendSMS:
+    handler: lambdas/endpoints/sendSMS.handler
+    events:
+      - http:
+          path: send-sms
+          method: POST
+          cors: true
+  analyse:
+    handler: lambdas/endpoints/analyse.handler
+    events:
+      - http:
+          path: analyse
+          method: POST
+          cors: true
 
 resources:
   Resources:
@@ -114,3 +131,35 @@ resources:
           - AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:provider.stage}-user-pool
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:provider.stage}-user-pool-client
+        UserPoolId:
+          Ref: CognitoUserPool
+        ExplicitAuthFlows:
+          - ADMIN_NO_SRP_AUTH
+        GenerateSecret: false
+    #MyAssumeRole:
+    #  Type: AWS::IAM::Role
+    #  Properties:
+    #    RoleName: MyAssumeRole
+    #    AssumeRolePolicyDocument:
+    #      Version: "2012-10-17"
+    #      Statement:
+    #        - Effect: Allow
+    #          Principal:
+    #            Service:
+    #              - lambda.amazonaws.com
+    #              - apigateway.amazonaws.com
+    #              - sns.amazonaws.com
+    #          Action:
+    #            - sts:AssumeRole
