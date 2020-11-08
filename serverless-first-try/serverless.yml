@@ -4,7 +4,7 @@ frameworkVersion: '2'
 provider:
   name: aws
   runtime: nodejs12.x
-  profile: serverless-first-try
+  profile: default
   stage: dev
   region: us-east-2
   apiGateway:

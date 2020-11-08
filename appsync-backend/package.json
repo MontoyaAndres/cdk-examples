@@ -1,0 +1,20 @@
+{
+  "name": "appsync-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "sls": "sls"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "devDependencies": {
+    "aws-sdk": "^2.787.0",
+    "serverless": "2.4.0",
+    "serverless-appsync-plugin": "1.4.0",
+    "serverless-iam-roles-per-function": "2.0.2"
+  },
+  "dependencies": {}
+}
