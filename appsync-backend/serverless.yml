@@ -4,12 +4,13 @@ frameworkVersion: '2'
 plugins:
   - serverless-appsync-plugin
   - serverless-iam-roles-per-function
+  - serverless-export-env
 
 provider:
   name: aws
   runtime: nodejs12.x
   region: us-east-2
-  profile: default
+  profile: andres
   environment:
     STAGE: ${self:custom.stage}
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"

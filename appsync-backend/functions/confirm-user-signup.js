@@ -1,13 +1,21 @@
 const DynamoDB = require('aws-sdk/clients/dynamodb');
+const Chance = require('chance');
+
 const DocumentClient = new DynamoDB.DocumentClient();
+const chance = new Chance();
 
 const { USERS_TABLE } = process.env;
 
 module.exports.handler = async event => {
   if (event.triggerSource === 'PostConfirmation_ConfirmSignUp') {
     const name = event.request.userAttributes['name'];
-    const random = Math.random().toString(36).substring(7);
-    const screenName = name + random;
+    const suffix = chance.string({
+      length: 8,
+      casing: 'upper',
+      alpha: true,
+      numeric: true,
+    });
+    const screenName = `${name.replace(/[^a-zA-Z0-9]/g, '')}${suffix}`;
 
     const user = {
       id: event.userName,
@@ -17,7 +25,7 @@ module.exports.handler = async event => {
       followersCount: 0,
       followingCount: 0,
       tweetsCount: 0,
-      likesCounts: 0,
+      likesCount: 0,
     };
 
     await DocumentClient.put({
