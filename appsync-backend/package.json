@@ -6,7 +6,8 @@
   "scripts": {
     "sls": "sls",
     "exportEnv": "sls export-env",
-    "integration-test": "jest --verbose --detectOpenHandles ./__tests__/test_cases/integration"
+    "integration-test": "jest --verbose --detectOpenHandles ./__tests__/test_cases/integration",
+    "e2e-test": "jest --verbose --detectOpenHandles ./__tests__/test_cases/e2e"
   },
   "keywords": [],
   "author": "",
