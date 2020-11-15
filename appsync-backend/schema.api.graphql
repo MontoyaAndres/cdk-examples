@@ -27,6 +27,7 @@ type Mutation {
 }
 
 input ProfileInput {
+  id: String!
   name: String!
   imageUrl: AWSURL
   backgroundImageUrl: AWSURL
