@@ -29,6 +29,7 @@
     "serverless-iam-roles-per-function": "2.0.2"
   },
   "dependencies": {
-    "chance": "^1.1.7"
+    "chance": "^1.1.7",
+    "ulid": "^2.3.0"
   }
 }
