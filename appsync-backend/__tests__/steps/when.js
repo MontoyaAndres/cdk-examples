@@ -225,6 +225,11 @@ const a_user_calls_tweet = async (user, text) => {
         replies
         likes
         retweets
+        profile {
+          id
+          name
+          screenName
+        }
       }
     }
   `;
@@ -241,6 +246,45 @@ const a_user_calls_tweet = async (user, text) => {
   return newTweet;
 };
 
+const a_user_calls_getTweets = async (user, userId, limit, nextToken) => {
+  const getTweets = `
+    query getTweets($userId: ID!, $limit: Int!, $nextToken: String) {
+      getTweets(userId: $userId, limit: $limit, nextToken: $nextToken) {
+        nextToken
+        tweets {
+          id
+          createdAt
+          profile {
+            id
+            name
+            screenName
+          }
+
+          ... on Tweet {
+            text
+            replies
+            likes
+            retweets
+          }
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    userId,
+    limit,
+    nextToken,
+  };
+
+  const data = await GraphQL(API_URL, getTweets, variables, user.accessToken);
+  const result = data.getTweets;
+
+  console.log(`[${user.username}] - posted new tweet`);
+
+  return result;
+};
+
 module.exports = {
   we_invoke_confirmUserSignup,
   a_user_signs_up,
@@ -251,4 +295,5 @@ module.exports = {
   a_user_calls_getImageUploadUrl,
   we_invoke_tweet,
   a_user_calls_tweet,
+  a_user_calls_getTweets,
 };
