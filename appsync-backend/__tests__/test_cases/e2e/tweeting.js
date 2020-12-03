@@ -59,5 +59,29 @@ describe('Given an authenticated user', () => {
         });
       });
     });
+
+    describe('When he calls getMyTimeline', () => {
+      let tweets, nextToken;
+
+      beforeAll(async () => {
+        const result = await when.a_user_calls_getMyTimeline(user, 25);
+        tweets = result.tweets;
+        nextToken = result.nextToken;
+      });
+
+      it('He will see the new tweet in the tweets array', () => {
+        expect(nextToken).toBeNull();
+        expect(tweets.length).toEqual(1);
+        expect(tweets[0]).toEqual(tweet);
+      });
+
+      it('He cannot ask for more than 25 tweets in a page', async () => {
+        await expect(
+          when.a_user_calls_getMyTimeline(user, 26)
+        ).rejects.toMatchObject({
+          message: expect.stringContaining('max limit is 25'),
+        });
+      });
+    });
   });
 });
