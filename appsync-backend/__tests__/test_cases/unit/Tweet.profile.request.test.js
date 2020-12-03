@@ -54,16 +54,9 @@ describe('Tweet.profile.request template', () => {
     );
     const result = when.we_invoke_an_appsync_template(templatePath, context);
 
-    console.log(result);
-
     expect(result).toEqual({
-      version: '2018-05-29',
-      operation: 'GetItem',
-      key: {
-        id: {
-          S: username,
-        },
-      },
+      id: username,
+      __typename: 'MyProfile',
     });
   });
 });
