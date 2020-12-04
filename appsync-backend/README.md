@@ -1,3 +1,3 @@
 https://github.com/theburningmonk/appsyncmasterclass-backend/blob/main/schema.api.graphql
 
-https://theburningmonk.thinkific.com/courses/take/appsync-masterclass-premium/lessons/17368913-implement-getmytimeline-query
+https://theburningmonk.thinkific.com/courses/take/appsync-masterclass-premium/lessons/17368915-implement-like-mutation
