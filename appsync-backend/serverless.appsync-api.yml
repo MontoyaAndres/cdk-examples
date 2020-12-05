@@ -21,6 +21,9 @@ mappingTemplates:
   - type: Query
     field: getMyTimeline
     dataSource: timelinesTable
+  - type: Query
+    field: getLikes
+    dataSource: likesTable
 
   - type: Mutation
     field: editMyProfile
@@ -44,9 +47,17 @@ mappingTemplates:
   - type: Tweet
     field: liked
     dataSource: likesTable
-  - type: TimelinePage
+  - type: UnhydratedTweetsPage
     field: tweets
     dataSource: tweetsTable
+  - type: MyProfile
+    field: tweets
+    dataSource: tweetsTable
+  - type: OtherProfile
+    field: tweets
+    dataSource: tweetsTable
+    request: MyProfile.tweets.request.vtl
+    response: MyProfile.tweets.response.vtl
 
 dataSources:
   - type: NONE
