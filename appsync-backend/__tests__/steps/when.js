@@ -69,7 +69,23 @@ const tweetFragment = `
     replies
     likes
     retweets
+    retweeted
     liked
+  }
+`;
+
+const retweetFragment = `
+  fragment retweetFields on Retweet {
+    id
+    profile {
+      ... iProfileFields
+    }
+    createdAt
+    retweetOf {
+      ... on Tweet {
+        ... tweetFields
+      }
+    }
   }
 `;
 
@@ -78,6 +94,10 @@ const iTweetFragment = `
     ... on Tweet {
       ... tweetFields
     }
+
+    ... on Retweet {
+      ... retweetFields
+    }
   }
 `;
 
@@ -85,6 +105,7 @@ registerFragment('myProfileFields', myProfileFragment);
 registerFragment('otherProfileFields', otherProfileFragment);
 registerFragment('iProfileFields', iProfileFragment);
 registerFragment('tweetFields', tweetFragment);
+registerFragment('retweetFields', retweetFragment);
 registerFragment('iTweetFields', iTweetFragment);
 
 const we_invoke_confirmUserSignup = async (username, name, email) => {
@@ -115,6 +136,22 @@ const we_invoke_confirmUserSignup = async (username, name, email) => {
   } catch (e) {
     console.log(e);
   }
+};
+
+const we_invoke_retweet = async (username, tweetId) => {
+  const handler = require('../../functions/retweet').handler;
+
+  const context = {};
+  const event = {
+    identity: {
+      username,
+    },
+    arguments: {
+      tweetId,
+    },
+  };
+
+  return await handler(event, context);
 };
 
 const a_user_signs_up = async (password, name, email) => {
@@ -418,6 +455,24 @@ const a_user_calls_getLikes = async (user, userId, limit, nextToken) => {
   return result;
 };
 
+const a_user_calls_retweet = async (user, tweetId) => {
+  const retweet = `
+    mutation retweet($tweetId: ID!) {
+      retweet(tweetId: $tweetId)
+    }
+  `;
+  const variables = {
+    tweetId,
+  };
+
+  const data = await GraphQL(API_URL, retweet, variables, user.accessToken);
+  const result = data.retweet;
+
+  console.log(`[${user.username}] - retweeted tweet [${tweetId}]`);
+
+  return result;
+};
+
 module.exports = {
   we_invoke_confirmUserSignup,
   a_user_signs_up,
@@ -427,10 +482,12 @@ module.exports = {
   we_invoke_getImageUploadUrl,
   a_user_calls_getImageUploadUrl,
   we_invoke_tweet,
+  we_invoke_retweet,
   a_user_calls_tweet,
   a_user_calls_getTweets,
   a_user_calls_getMyTimeline,
   a_user_calls_like,
   a_user_calls_unlike,
   a_user_calls_getLikes,
+  a_user_calls_retweet,
 };

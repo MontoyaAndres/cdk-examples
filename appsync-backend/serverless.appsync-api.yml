@@ -39,14 +39,30 @@ mappingTemplates:
   - type: Mutation
     field: unlike
     dataSource: unlikeMutation
+  - type: Mutation
+    field: retweet
+    dataSource: retweetFunction
+    request: false
+    response: false
 
   # NESTED FIELDS
   - type: Tweet
     field: profile
     dataSource: usersTable
+  - type: Retweet
+    field: profile
+    dataSource: usersTable
+    request: Tweet.profile.request.vtl
+    response: Tweet.profile.response.vtl
   - type: Tweet
     field: liked
     dataSource: likesTable
+  - type: Tweet
+    field: retweeted
+    dataSource: retweetsTable
+  - type: Retweet
+    field: retweetOf
+    dataSource: tweetsTable
   - type: UnhydratedTweetsPage
     field: tweets
     dataSource: tweetsTable
@@ -78,6 +94,10 @@ dataSources:
     name: likesTable
     config:
       tableName: !Ref LikesTable
+  - type: AMAZON_DYNAMODB
+    name: retweetsTable
+    config:
+      tableName: !Ref RetweetsTable
   - type: AMAZON_DYNAMODB
     name: likeMutation
     config:
@@ -112,6 +132,10 @@ dataSources:
     name: tweetFunction
     config:
       functionName: tweet
+  - type: AWS_LAMBDA
+    name: retweetFunction
+    config:
+      functionName: retweet
 
 substitutions:
   TweetsTable: !Ref TweetsTable
