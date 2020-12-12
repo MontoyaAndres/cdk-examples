@@ -44,6 +44,8 @@ const otherProfileFragment = `
     followingCount
     tweetsCount
     likesCount
+    following
+    followedBy
   }
 `;
 
@@ -293,6 +295,32 @@ const a_user_calls_getMyProfile = async user => {
   const profile = data.getMyProfile;
 
   console.log(`[${user.username}] - fetched profile`);
+
+  return profile;
+};
+
+const a_user_calls_getProfile = async (user, screenName) => {
+  const getProfile = `
+    query getProfile($screenName: String!) {
+      getProfile(screenName: $screenName) {
+        ... otherProfileFields
+        tweets {
+          nextToken
+          tweets {
+            ... iTweetFields
+          }
+        }
+      }
+    }
+`;
+  const variables = {
+    screenName,
+  };
+
+  const data = await GraphQL(API_URL, getProfile, variables, user.accessToken);
+  const profile = data.getProfile;
+
+  console.log(`[${user.username}] - fetched profile for [${screenName}]`);
 
   return profile;
 };
@@ -588,6 +616,24 @@ const a_user_calls_reply = async (user, tweetId, text) => {
   return result;
 };
 
+const a_user_calls_follow = async (user, userId) => {
+  const follow = `
+    mutation follow($userId: ID!) {
+      follow(userId: $userId)
+    }
+`;
+  const variables = {
+    userId,
+  };
+
+  const data = await GraphQL(API_URL, follow, variables, user.accessToken);
+  const result = data.follow;
+
+  console.log(`[${user.username}] - followed [${userId}]`);
+
+  return result;
+};
+
 module.exports = {
   we_invoke_confirmUserSignup,
   a_user_signs_up,
@@ -600,6 +646,7 @@ module.exports = {
   we_invoke_retweet,
   we_invoke_unretweet,
   we_invoke_reply,
+  a_user_calls_getProfile,
   a_user_calls_tweet,
   a_user_calls_getTweets,
   a_user_calls_getMyTimeline,
@@ -609,4 +656,5 @@ module.exports = {
   a_user_calls_retweet,
   a_user_calls_unretweet,
   a_user_calls_reply,
+  a_user_calls_follow,
 };
