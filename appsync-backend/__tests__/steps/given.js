@@ -91,8 +91,23 @@ const an_authenticated_user = async () => {
   };
 };
 
+const a_user_follows_another = async (userId, otherUserId) => {
+  const DocumentClient = new AWS.DynamoDB.DocumentClient();
+
+  await DocumentClient.put({
+    TableName: process.env.RELATIONSHIPS_TABLE,
+    Item: {
+      userId,
+      sk: `FOLLOWS_${otherUserId}`,
+      otherUserId,
+      createdAt: new Date().toJSON(),
+    },
+  }).promise();
+};
+
 module.exports = {
   a_random_user,
   an_appsync_context,
   an_authenticated_user,
+  a_user_follows_another,
 };

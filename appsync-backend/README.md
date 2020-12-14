@@ -1,3 +1,3 @@
 https://github.com/theburningmonk/appsyncmasterclass-backend/blob/main/schema.api.graphql
 
-https://theburningmonk.thinkific.com/courses/take/appsync-masterclass-premium/lessons/17368927-implement-follow-mutation
+https://theburningmonk.thinkific.com/courses/take/appsync-masterclass-premium/lessons/17368929-distribute-tweets-to-followers

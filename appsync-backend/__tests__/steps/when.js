@@ -230,6 +230,13 @@ const we_invoke_reply = async (username, tweetId, text) => {
   return await handler(event, context);
 };
 
+const we_invoke_distributeTweets = async event => {
+  const handler = require('../../functions/distribute-tweets').handler;
+
+  const context = {};
+  return await handler(event, context);
+};
+
 const a_user_signs_up = async (password, name, email) => {
   const cognito = new AWS.CognitoIdentityServiceProvider();
 
@@ -646,6 +653,7 @@ module.exports = {
   we_invoke_retweet,
   we_invoke_unretweet,
   we_invoke_reply,
+  we_invoke_distributeTweets,
   a_user_calls_getProfile,
   a_user_calls_tweet,
   a_user_calls_getTweets,
