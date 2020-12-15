@@ -7,9 +7,9 @@
     "sls": "sls",
     "deploy": "sls deploy",
     "exportEnv": "sls export-env",
-    "test": "jest --verbose --detectOpenHandles --silent ./__tests__/test_cases/unit",
-    "integration-test": "jest --verbose --detectOpenHandles --silent ./__tests__/test_cases/integration",
-    "e2e-test": "jest --verbose --detectOpenHandles --silent ./__tests__/test_cases/e2e"
+    "test": "jest --verbose --silent ./__tests__/test_cases/unit",
+    "integration-test": "jest --verbose --silent ./__tests__/test_cases/integration",
+    "e2e-test": "jest --verbose --silent ./__tests__/test_cases/e2e"
   },
   "keywords": [],
   "author": "",

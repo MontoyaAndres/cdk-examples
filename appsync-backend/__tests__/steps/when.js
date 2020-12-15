@@ -649,6 +649,24 @@ const a_user_calls_follow = async (user, userId) => {
   return result;
 };
 
+const a_user_calls_unfollow = async (user, userId) => {
+  const unfollow = `
+    mutation unfollow($userId: ID!) {
+      unfollow(userId: $userId)
+    }
+`;
+  const variables = {
+    userId,
+  };
+
+  const data = await GraphQL(API_URL, unfollow, variables, user.accessToken);
+  const result = data.unfollow;
+
+  console.log(`[${user.username}] - unfollowed [${userId}]`);
+
+  return result;
+};
+
 module.exports = {
   we_invoke_confirmUserSignup,
   a_user_signs_up,
@@ -663,6 +681,7 @@ module.exports = {
   we_invoke_reply,
   we_invoke_distributeTweets,
   we_invoke_distributeTweetsToFollower,
+  a_user_calls_unfollow,
   a_user_calls_getProfile,
   a_user_calls_tweet,
   a_user_calls_getTweets,
