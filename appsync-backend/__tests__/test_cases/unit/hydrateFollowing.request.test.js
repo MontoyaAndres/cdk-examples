@@ -1,14 +1,14 @@
-const path = require('path');
 const chance = require('chance').Chance();
+const path = require('path');
 
 const given = require('../../steps/given');
 const when = require('../../steps/when');
 
-describe('hydrateFollowers.request template', () => {
+describe('hydrateFollowing.request template', () => {
   it('Should return empty array if prev.result.relationships is empty', () => {
     const templatePath = path.resolve(
       __dirname,
-      '../../../mapping-templates/hydrateFollowers.request.vtl'
+      '../../../mapping-templates/hydrateFollowing.request.vtl'
     );
 
     const username = chance.guid();
@@ -27,13 +27,15 @@ describe('hydrateFollowers.request template', () => {
     );
     const result = when.we_invoke_an_appsync_template(templatePath, context);
 
-    expect(result).toEqual({ profiles: [] });
+    expect(result).toEqual({
+      profiles: [],
+    });
   });
 
   it('Should convert relationships to BatchGetItem keys', () => {
     const templatePath = path.resolve(
       __dirname,
-      '../../../mapping-templates/hydrateFollowers.request.vtl'
+      '../../../mapping-templates/hydrateFollowing.request.vtl'
     );
 
     const username = chance.guid();
@@ -69,7 +71,7 @@ describe('hydrateFollowers.request template', () => {
           keys: [
             {
               id: {
-                S: userId,
+                S: otherUserId,
               },
             },
           ],

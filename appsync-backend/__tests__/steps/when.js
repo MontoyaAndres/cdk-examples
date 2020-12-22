@@ -457,14 +457,16 @@ const a_user_calls_tweet = async (user, text) => {
 };
 
 const a_user_calls_getMyTimeline = async (user, limit, nextToken) => {
-  const getMyTimeline = `query getMyTimeline($limit: Int!, $nextToken: String) {
-    getMyTimeline(limit: $limit, nextToken: $nextToken) {
-      nextToken
-      tweets {
-        ... iTweetFields
+  const getMyTimeline = `
+    query getMyTimeline($limit: Int!, $nextToken: String) {
+      getMyTimeline(limit: $limit, nextToken: $nextToken) {
+        nextToken
+        tweets {
+          ... iTweetFields
+        }
       }
     }
-  }`;
+`;
 
   const variables = {
     limit,
@@ -696,6 +698,35 @@ const a_user_calls_getFollowers = async (user, userId, limit, nextToken) => {
   return result;
 };
 
+const a_user_calls_getFollowing = async (user, userId, limit, nextToken) => {
+  const getFollowing = `
+    query getFollowing($userId: ID!, $limit: Int!, $nextToken: String) {
+      getFollowing(userId: $userId, limit: $limit, nextToken: $nextToken) {
+        profiles {
+          ... iProfileFields
+        }
+      }
+    }
+`;
+  const variables = {
+    userId,
+    limit,
+    nextToken,
+  };
+
+  const data = await GraphQL(
+    API_URL,
+    getFollowing,
+    variables,
+    user.accessToken
+  );
+  const result = data.getFollowing;
+
+  console.log(`[${user.username}] - fetched following`);
+
+  return result;
+};
+
 module.exports = {
   we_invoke_confirmUserSignup,
   a_user_signs_up,
@@ -723,4 +754,5 @@ module.exports = {
   a_user_calls_reply,
   a_user_calls_follow,
   a_user_calls_getFollowers,
+  a_user_calls_getFollowing,
 };
