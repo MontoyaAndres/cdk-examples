@@ -1,0 +1,67 @@
+service: step-funcions-backend
+frameworkVersion: '2'
+
+plugins:
+  - serverless-step-functions
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-2
+  profile: andres
+
+functions:
+  add:
+    handler: handler.add
+
+  double:
+    handler: handler.double
+
+  doubleGeneralError:
+    handler: handler.doubleGeneralError
+
+stepFunctions:
+  stateMachines:
+    simple-maths:
+      name: simple-maths
+      definition:
+        Comment: "example to demostrate function chaining"
+        StartAt: Add
+        States:
+          Add:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [add, Arn]
+            Next: IsBigNumber
+          IsBigNumber:
+            Type: Choice
+            # If the number is greater than 50 execute Double, if not, execute DefaultStateInCondition
+            Choices:
+              - Variable: $
+                NumericGreaterThan: 50
+                Next: Double
+            Default: DefaultStateInCondition
+          Double:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [double, Arn]
+            End: true
+            Retry:
+              # If the function fails with the error of NumberIsTooBig, try 0 times
+              - ErrorEquals: [NumberIsTooBig]
+                MaxAttempts: 0
+              # If the function fails, try 3 times with ANY ERROR
+              - ErrorEquals: [States.ALL]
+                MaxAttempts: 3
+            Catch:
+              # If the function fails with the error NumberIsTooBig, execute the function DoubleGeneralError
+              - ErrorEquals: [NumberIsTooBig]
+                Next: DoubleGeneralError
+          DoubleGeneralError:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [doubleGeneralError, Arn]
+            End: true
+          DefaultStateInCondition:
+            Type: Fail
+            Cause: "Nothing to do!"
