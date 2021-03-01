@@ -30,6 +30,9 @@
     "serverless-iam-roles-per-function": "2.0.2"
   },
   "dependencies": {
+    "@middy/core": "^1.5.2",
+    "@middy/ssm": "^1.5.2",
+    "algoliasearch": "^4.8.5",
     "chance": "^1.1.7",
     "ulid": "^2.3.0"
   }

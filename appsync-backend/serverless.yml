@@ -176,6 +176,32 @@ functions:
           - dynamodb:DeleteItem
         Resource: !GetAtt TimelinesTable.Arn
 
+  syncUsersToAlgolia:
+    handler: functions/sync-users-to-algolia.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt UsersTable.StreamArn
+    iamRoleStatements:
+      - Effect: Allow
+        Action: ssm:GetParameters
+        Resource:
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-app-id
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-admin-key
+
+  syncTweetsToAlgolia:
+    handler: functions/sync-tweets-to-algolia.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt TweetsTable.StreamArn
+    iamRoleStatements:
+      - Effect: Allow
+        Action: ssm:GetParameters
+        Resource:
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-app-id
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-admin-key
+
 resources:
   Resources:
     UsersTable:
@@ -197,6 +223,8 @@ resources:
                 KeyType: HASH
             Projection:
                 ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
         Tags:
           - Key: Environment
             Value: ${self:custom.stage}
