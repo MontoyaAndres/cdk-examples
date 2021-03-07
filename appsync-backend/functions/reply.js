@@ -2,7 +2,7 @@ const ulid = require('ulid');
 const DynamoDB = require('aws-sdk/clients/dynamodb');
 
 const { TweetTypes } = require('../lib/constants');
-const { getTweetById } = require('../lib/tweets');
+const { getTweetById, extractHashTags } = require('../lib/tweets');
 
 const DocumentClient = new DynamoDB.DocumentClient();
 
@@ -13,6 +13,7 @@ module.exports.handler = async event => {
   const { username } = event.identity;
   const id = ulid.ulid();
   const timestamp = new Date().toJSON();
+  const hashTags = extractHashTags(text);
 
   const tweet = await getTweetById(tweetId);
   if (!tweet) {
@@ -32,6 +33,7 @@ module.exports.handler = async event => {
     replies: 0,
     likes: 0,
     retweets: 0,
+    hashTags,
   };
 
   const transactItems = [
