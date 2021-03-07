@@ -8,7 +8,7 @@ const initUsersIndex = async (appId, key, stage) => {
     usersIndex = client.initIndex(`appsync_users_${stage}`);
 
     await usersIndex.setSettings({
-      searchableAttributes: ['name', 'screenName'],
+      searchableAttributes: ['name', 'screenName', 'bio'],
     });
   }
 
