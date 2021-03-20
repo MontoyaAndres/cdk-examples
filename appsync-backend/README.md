@@ -1,3 +1,3 @@
 https://github.com/theburningmonk/appsyncmasterclass-backend/blob/main/schema.api.graphql
 
-https://theburningmonk.thinkific.com/courses/take/appsync-masterclass-premium/lessons/17368942-add-tests-for-search-query
+https://theburningmonk.thinkific.com/courses/take/appsync-masterclass-premium/lessons/17368948-add-subscription-for-retweets-coming-soon

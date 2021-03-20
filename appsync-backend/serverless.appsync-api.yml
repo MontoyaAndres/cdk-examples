@@ -5,6 +5,8 @@ userPoolConfig:
   awsRegion: us-east-2
   defaultAction: ALLOW
   userPoolId: !Ref CognitoUserPool
+additionalAuthenticationProviders:
+  - authenticationType: AWS_IAM
 mappingTemplatesLocation: mapping-templates
 mappingTemplates:
   - type: Query
