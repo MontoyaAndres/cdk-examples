@@ -98,6 +98,9 @@ mappingTemplates:
   - type: Mutation
     field: notifyRetweeted
     dataSource: notificationsTable
+  - type: Mutation
+    field: notifyLiked
+    dataSource: notificationsTable
 
   # NESTED FIELDS
   - type: Tweet
