@@ -6,8 +6,7 @@ const velocityTemplate = require('amplify-velocity-template');
 
 const { GraphQL, registerFragment } = require('../lib/graphql');
 
-const API_URL =
-  'https://4slpdoglwrdnjkyortq53tudfq.appsync-api.us-east-2.amazonaws.com/graphql';
+const API_URL = process.env.API_URL;
 
 const myProfileFragment = `
   fragment myProfileFields on MyProfile {
