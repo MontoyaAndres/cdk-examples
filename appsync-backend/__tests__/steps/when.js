@@ -447,12 +447,16 @@ const a_user_calls_tweet = async (user, text) => {
     text,
   };
 
-  const data = await GraphQL(API_URL, tweet, variables, user.accessToken);
-  const result = data.tweet;
+  try {
+    const data = await GraphQL(API_URL, tweet, variables, user.accessToken);
+    const result = data.tweet;
 
-  console.log(`[${user.username}] - posted new tweet`);
+    console.log(`[${user.username}] - posted new tweet`);
 
-  return result;
+    return result;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const a_user_calls_getMyTimeline = async (user, limit, nextToken) => {
