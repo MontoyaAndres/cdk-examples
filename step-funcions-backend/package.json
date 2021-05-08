@@ -1,0 +1,15 @@
+{
+  "name": "step-funcions-backend",
+  "version": "1.0.0",
+  "description": "IMPORTANT: https://theburningmonk.thinkific.com/courses/take/complete-guide-to-aws-step-functions/lessons/6990775-try-catch",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "serverless-step-functions": "^2.30.0"
+  }
+}
