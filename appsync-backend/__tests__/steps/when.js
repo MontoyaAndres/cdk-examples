@@ -142,6 +142,17 @@ const iTweetFragment = `
   }
 `;
 
+const conversationFragment = /* GraphQL */ `
+  fragment conversationFields on Conversation {
+    id
+    otherUser {
+      ...otherProfileFields
+    }
+    lastMessage
+    lastModified
+  }
+`;
+
 registerFragment('myProfileFields', myProfileFragment);
 registerFragment('otherProfileFields', otherProfileFragment);
 registerFragment('iProfileFields', iProfileFragment);
@@ -149,6 +160,7 @@ registerFragment('tweetFields', tweetFragment);
 registerFragment('retweetFields', retweetFragment);
 registerFragment('replyFields', replyFragment);
 registerFragment('iTweetFields', iTweetFragment);
+registerFragment('conversationFields', conversationFragment);
 
 const we_invoke_confirmUserSignup = async (username, name, email) => {
   const handler = require('../../functions/confirm-user-signup').handler;
@@ -237,10 +249,27 @@ const we_invoke_distributeTweets = async event => {
 };
 
 const we_invoke_distributeTweetsToFollower = async event => {
-  const handler = require('../../functions/distribute-tweets-to-follower')
-    .handler;
+  const handler =
+    require('../../functions/distribute-tweets-to-follower').handler;
 
   const context = {};
+  return await handler(event, context);
+};
+
+const we_invoke_sendDirectMessage = async (username, otherUserId, message) => {
+  const handler = require('../../functions/send-direct-message').handler;
+
+  const context = {};
+  const event = {
+    identity: {
+      username,
+    },
+    arguments: {
+      otherUserId,
+      message,
+    },
+  };
+
   return await handler(event, context);
 };
 
@@ -806,20 +835,47 @@ const a_user_calls_getHashTag = async (
   return result;
 };
 
+const a_user_calls_sendDirectMessage = async (user, otherUserId, message) => {
+  const sendDirectMessage = /* GraphQL */ `
+    mutation sendDirectMessage($otherUserId: ID!, $message: String!) {
+      sendDirectMessage(otherUserId: $otherUserId, message: $message) {
+        ...conversationFields
+      }
+    }
+  `;
+  const variables = {
+    otherUserId,
+    message,
+  };
+
+  const data = await GraphQL(
+    process.env.API_URL,
+    sendDirectMessage,
+    variables,
+    user.accessToken
+  );
+  const result = data.sendDirectMessage;
+
+  console.log(`[${user.username}] - sent DM to [${otherUserId}]`);
+
+  return result;
+};
+
 module.exports = {
   we_invoke_confirmUserSignup,
-  a_user_signs_up,
   we_invoke_an_appsync_template,
-  a_user_calls_getMyProfile,
-  a_user_calls_editMyProfile,
   we_invoke_getImageUploadUrl,
-  a_user_calls_getImageUploadUrl,
   we_invoke_tweet,
   we_invoke_retweet,
   we_invoke_unretweet,
   we_invoke_reply,
   we_invoke_distributeTweets,
   we_invoke_distributeTweetsToFollower,
+  we_invoke_sendDirectMessage,
+  a_user_signs_up,
+  a_user_calls_getMyProfile,
+  a_user_calls_editMyProfile,
+  a_user_calls_getImageUploadUrl,
   a_user_calls_unfollow,
   a_user_calls_getProfile,
   a_user_calls_tweet,
@@ -836,4 +892,5 @@ module.exports = {
   a_user_calls_getFollowing,
   a_user_calls_search,
   a_user_calls_getHashTag,
+  a_user_calls_sendDirectMessage,
 };

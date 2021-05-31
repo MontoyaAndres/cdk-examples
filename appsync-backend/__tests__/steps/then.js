@@ -210,6 +210,50 @@ const there_are_N_tweets_in_TimelinesTable = async (userId, n) => {
   return resp.Items;
 };
 
+const there_are_N_messages_in_DirectMessagesTable = async (
+  conversationId,
+  n
+) => {
+  const DynamoDB = new AWS.DynamoDB.DocumentClient();
+
+  console.log(
+    `looking for direct messages for [conversation: ${conversationId}] in table ${process.env.DIRECT_MESSAGES_TABLE}...`
+  );
+  const resp = await DynamoDB.query({
+    TableName: process.env.DIRECT_MESSAGES_TABLE,
+    KeyConditionExpression: 'conversationId = :conversationId',
+    ExpressionAttributeValues: {
+      ':conversationId': conversationId,
+    },
+  }).promise();
+
+  expect(resp.Items).toHaveLength(n);
+
+  return resp.Items;
+};
+
+const conversation_exists_in_ConversationsTable = async (
+  userId,
+  otherUserId
+) => {
+  const DynamoDB = new AWS.DynamoDB.DocumentClient();
+
+  console.log(
+    `looking for conversation between [${userId}] and [${otherUserId}] in table ${process.env.CONVERSATIONS_TABLE}...`
+  );
+  const resp = await DynamoDB.get({
+    TableName: process.env.CONVERSATIONS_TABLE,
+    Key: {
+      userId,
+      otherUserId,
+    },
+  }).promise();
+
+  expect(resp.Item).toBeTruthy();
+
+  return resp.Item;
+};
+
 const tweetsCount_is_updated_in_UsersTable = async (id, newCount) => {
   const DynamoDB = new AWS.DynamoDB.DocumentClient();
 
@@ -263,4 +307,6 @@ module.exports = {
   retweet_exists_in_RetweetsTable,
   retweet_does_not_exist_in_RetweetsTable,
   there_are_N_tweets_in_TimelinesTable,
+  there_are_N_messages_in_DirectMessagesTable,
+  conversation_exists_in_ConversationsTable,
 };
