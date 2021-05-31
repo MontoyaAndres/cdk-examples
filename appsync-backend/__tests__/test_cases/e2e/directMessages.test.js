@@ -32,6 +32,31 @@ describe('Given two authenticated users', () => {
       expect(conversation.lastMessage).toEqual(message);
     });
 
+    it('User A should see the conversation when he calls listConversations', async () => {
+      const { conversations, nextToken } =
+        await when.a_user_calls_listConversations(userA, 10);
+
+      expect(nextToken).toBeNull();
+      expect(conversations).toHaveLength(1);
+      expect(conversations[0]).toEqual(conversation);
+    });
+
+    it('User B should see the conversations when he calls listConversations', async () => {
+      const { conversations, nextToken } =
+        await when.a_user_calls_listConversations(userB, 10);
+
+      expect(nextToken).toBeNull();
+      expect(conversations).toHaveLength(1);
+      expect(conversations[0]).toMatchObject({
+        id: conversation.id,
+        lastMessage: message,
+        lastModified: conversation.lastModified,
+        otherUser: {
+          id: userA.username,
+        },
+      });
+    });
+
     describe('When User B sends a DM to User A', () => {
       let conversation2;
       const message2 = chance.string({ length: 16 });
@@ -49,6 +74,31 @@ describe('Given two authenticated users', () => {
         expect(conversation2.lastModified > conversation.lastModified).toBe(
           true
         );
+      });
+
+      it('User A should see the updated conversation when he calls listConversations', async () => {
+        const { conversations, nextToken } =
+          await when.a_user_calls_listConversations(userA, 10);
+
+        expect(nextToken).toBeNull();
+        expect(conversations).toHaveLength(1);
+        expect(conversations[0]).toMatchObject({
+          id: conversation.id,
+          lastMessage: message2,
+          lastModified: conversation2.lastModified,
+          otherUser: {
+            id: userB.username,
+          },
+        });
+      });
+
+      it('User B should see the updated conversation when he calls listConversations', async () => {
+        const { conversations, nextToken } =
+          await when.a_user_calls_listConversations(userB, 10);
+
+        expect(nextToken).toBeNull();
+        expect(conversations).toHaveLength(1);
+        expect(conversations[0]).toMatchObject(conversation2);
       });
     });
   });

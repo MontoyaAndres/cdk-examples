@@ -1,0 +1,4 @@
+{
+  "conversations": $utils.toJson($context.result.items),
+  "nextToken": $utils.toJson($utils.defaultIfNullOrBlank($context.result.nextToken, null))
+}
