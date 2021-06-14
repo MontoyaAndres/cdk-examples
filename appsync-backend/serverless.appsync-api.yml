@@ -114,6 +114,9 @@ mappingTemplates:
     field: notifyReplied
     dataSource: notificationsTable
   - type: Mutation
+    field: notifyDMed
+    dataSource: notificationsTable
+  - type: Mutation
     field: sendDirectMessage
     dataSource: sendDirectMessageFunction
     request: false

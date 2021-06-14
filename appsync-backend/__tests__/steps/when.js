@@ -861,7 +861,7 @@ const a_user_calls_sendDirectMessage = async (user, otherUserId, message) => {
   };
 
   const data = await GraphQL(
-    process.env.API_URL,
+    API_URL,
     sendDirectMessage,
     variables,
     user.accessToken
@@ -890,7 +890,7 @@ const a_user_calls_listConversations = async (user, limit, nextToken) => {
   };
 
   const data = await GraphQL(
-    process.env.API_URL,
+    API_URL,
     listConversations,
     variables,
     user.accessToken
@@ -933,7 +933,7 @@ const a_user_calls_getDirectMessages = async (
   };
 
   const data = await GraphQL(
-    process.env.API_URL,
+    API_URL,
     getDirectMessages,
     variables,
     user.accessToken
