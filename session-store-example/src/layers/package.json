@@ -1,0 +1,7 @@
+{
+    "name": "layers",
+    "version": "0.1.0",
+    "dependencies": {
+        "middy": "^0.36.0"
+    }
+}

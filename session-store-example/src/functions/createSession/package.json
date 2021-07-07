@@ -1,0 +1,8 @@
+{
+    "name": "create-session",
+    "version": "0.1.0",
+    "dependencies": {
+     "uuid": "^8.3.1"
+    }
+}
+  

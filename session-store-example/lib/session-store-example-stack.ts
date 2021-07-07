@@ -16,19 +16,35 @@ export class SessionStoreExampleStack extends cdk.Stack {
       indexName: 'UserIndex',
       partitionKey: { name: 'Username', type: dynamodb.AttributeType.STRING },
     });
-
+    const command = [
+      'bash', '-c',
+      `cp -aur . /asset-output &&
+       cd /asset-output &&
+       mkdir .npm &&
+       export npm_config_cache=.npm &&
+       npm install`,
+    ];
     const layer = new lambda.LayerVersion(this, 'session-store-layer', {
-      code: lambda.Code.fromAsset('src/layers'),
+      code: lambda.Code.fromAsset('src/layers',{
+        bundling: {
+          command, image: lambda.Runtime.NODEJS_12_X.bundlingDockerImage
+        }
+      }),
       compatibleRuntimes: [lambda.Runtime.NODEJS_12_X],
     });
     /* layer.addPermission('remote-account-grant', { accountId: '648594647853' }); */
 
+   
     const createSessionFunction = new lambda.Function(
       this,
       'CreateSessionHandler',
       {
         runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambda.Code.fromAsset('src/functions/createSession'),
+        code: lambda.Code.fromAsset('src/functions/createSession',{
+          bundling: {
+            command, image: lambda.Runtime.NODEJS_12_X.bundlingDockerImage
+          }
+        }),
         handler: 'index.handler',
         layers: [layer],
         environment: {
