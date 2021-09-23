@@ -1,0 +1,46 @@
+{
+  "name": "ECOMMERCE_GATEWAY",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy-develop": "sls deploy --stage develop",
+    "deploy-staging": "sls deploy --stage staging",
+    "deploy-production": "sls deploy --stage master --region us-east-1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Trade-EC/ECOMMERCE_GATEWAY.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Trade-EC/ECOMMERCE_GATEWAY/issues"
+  },
+  "homepage": "https://github.com/Trade-EC/ECOMMERCE_GATEWAY#readme",
+  "devDependencies": {
+    "dotenv": "^10.0.0",
+    "serverless": "^2.48.1",
+    "serverless-appsync-plugin": "^1.11.3",
+    "serverless-iam-roles-per-function": "^3.2.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.19.0",
+    "@aws-sdk/client-dynamodb": "^3.19.0",
+    "@aws-sdk/client-s3": "^3.20.0",
+    "@aws-sdk/client-ses": "^3.22.0",
+    "@aws-sdk/util-dynamodb": "^3.19.0",
+    "@middy/core": "^2.4.3",
+    "@middy/ssm": "^2.4.3",
+    "algoliasearch": "^4.10.3",
+    "aws-appsync": "^4.1.1",
+    "graphql": "^15.5.1",
+    "graphql-tag": "^2.12.5",
+    "isomorphic-fetch": "^3.0.0",
+    "lodash.chunk": "^4.2.0",
+    "lodash.omit": "^4.5.0",
+    "lodash.sortby": "^4.7.0",
+    "ulid": "^2.3.0"
+  }
+}

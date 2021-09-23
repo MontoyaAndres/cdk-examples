@@ -1,0 +1,163 @@
+name: ecommercegateway-${self:custom.stage}
+schema: schema.api.graphql
+authenticationType: AMAZON_COGNITO_USER_POOLS
+userPoolConfig:
+  awsRegion: ${self:custom.region}
+  defaultAction: ALLOW
+  userPoolId: !Ref CognitoUserPool
+additionalAuthenticationProviders:
+  - authenticationType: AWS_IAM
+xrayEnabled: true
+tags:
+  Environment: ${self:custom.stage}
+  Name: appsync-api-ecommercegateway
+  tradeproject: ECOMMERCE_GATEWAY
+mappingTemplatesLocation: mapping-templates
+mappingTemplates:
+  - type: Subscription
+    field: onNotified
+    dataSource: none
+
+  - type: Query
+    field: account
+    dataSource: accountTable
+  - type: Query
+    field: user
+    dataSource: listUsersFunction
+    request: false
+    response: false
+  - type: Query
+    field: menus
+    dataSource: listMenusFunction
+    request: false
+    response: false
+  - type: Query
+    field: rolesByUser
+    dataSource: listRolesFunction
+    request: false
+    response: false
+  - type: Query
+    field: rolesByAccount
+    dataSource: listRolesFunction
+    request: false
+    response: false
+  - type: Query
+    field: usersByRole
+    dataSource: searchersByRoleFunction
+    request: false
+    response: false
+  - type: Query
+    field: invitationsByRole
+    dataSource: searchersByRoleFunction
+    request: false
+    response: false
+  - type: Query
+    field: notifications
+    dataSource: notificationTable
+
+  - type: Mutation
+    field: createAccount
+    dataSource: accountTable
+  - type: Mutation
+    field: updateAccount
+    dataSource: accountTable
+  - type: Mutation
+    field: createRole
+    dataSource: saveRoleFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: updateRole
+    dataSource: saveRoleFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: registerUser
+    dataSource: saveUserFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: confirmUser
+    dataSource: saveUserFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: updateUser
+    dataSource: saveUserFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: createInvitation
+    dataSource: invitationFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: updateInvitation
+    dataSource: invitationFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: resendInvitation
+    dataSource: invitationFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: deleteInvitation
+    dataSource: invitationFunction
+    request: false
+    response: false
+  - type: Mutation
+    field: notifyEvent
+    dataSource: notificationTable
+
+  # NESTED RESOLVERS
+  - type: Role
+    field: menus
+    dataSource: listMenusFunction
+    request: false
+    response: false
+  - type: User
+    field: accounts
+    dataSource: listUsersFunction
+    request: false
+    response: false
+
+dataSources:
+  - type: NONE
+    name: none
+  - type: AMAZON_DYNAMODB
+    name: accountTable
+    config:
+      tableName: !Ref AccountTable
+  - type: AMAZON_DYNAMODB
+    name: notificationTable
+    config:
+      tableName: !Ref NotificationTable
+  - type: AWS_LAMBDA
+    name: saveRoleFunction
+    config:
+      functionName: saveRole
+  - type: AWS_LAMBDA
+    name: listMenusFunction
+    config:
+      functionName: listMenus
+  - type: AWS_LAMBDA
+    name: listUsersFunction
+    config:
+      functionName: listUsers
+  - type: AWS_LAMBDA
+    name: listRolesFunction
+    config:
+      functionName: listRoles
+  - type: AWS_LAMBDA
+    name: saveUserFunction
+    config:
+      functionName: saveUser
+  - type: AWS_LAMBDA
+    name: searchersByRoleFunction
+    config:
+      functionName: searchersByRole
+  - type: AWS_LAMBDA
+    name: invitationFunction
+    config:
+      functionName: invitation

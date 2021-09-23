@@ -1,0 +1,18 @@
+#set($accountId = $context.arguments.accountId)
+
+#if ($utils.isNullOrEmpty($context.identity.claims.get("cognito:groups")))
+  #set($accounts = $context.identity.claims.get("custom:accounts"))
+
+  #if(!$accounts.contains($accountId))
+    $utils.error("Account not found")
+  #end
+#end
+
+{
+  "version": "2018-05-29",
+  "operation": "GetItem",
+  "key": {
+    "id": $utils.dynamodb.toDynamoDBJson($accountId)
+  },
+  "consistentRead": true
+}

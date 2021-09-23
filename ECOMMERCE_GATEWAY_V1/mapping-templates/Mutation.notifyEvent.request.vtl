@@ -1,0 +1,26 @@
+#set($currentDate = $utils.time.nowISO8601())
+
+{
+  "version": "2018-05-29",
+  "operation": "PutItem",
+  "key": {
+    "id": $utils.dynamodb.toDynamoDBJson($context.arguments.input.id),
+    "userId": $utils.dynamodb.toDynamoDBJson($context.arguments.input.userId)
+  },
+  "attributeValues": {
+    "__typename": $utils.dynamodb.toDynamoDBJson("Invitation"),
+    "id": $utils.dynamodb.toDynamoDBJson($context.arguments.input.id),
+    "userId": $utils.dynamodb.toDynamoDBJson($context.arguments.input.userId),
+    "type": $util.dynamodb.toDynamoDBJson($context.arguments.input.type),
+    "action": $util.dynamodb.toDynamoDBJson($context.arguments.input.action),
+    "title": $util.dynamodb.toDynamoDBJson($context.arguments.input.title),
+    "description": $util.dynamodb.toDynamoDBJson($context.arguments.input.description),
+    "picture": $util.dynamodb.toDynamoDBJson($context.arguments.input.picture),
+    "additionalInfo": $util.dynamodb.toDynamoDBJson($context.arguments.input.additionalInfo),
+    "createdAt": $utils.dynamodb.toDynamoDBJson($currentDate),
+    "updatedAt": $utils.dynamodb.toDynamoDBJson($currentDate)
+  },
+  "condition": {
+    "expression": "attribute_not_exists(id)"
+  }
+}

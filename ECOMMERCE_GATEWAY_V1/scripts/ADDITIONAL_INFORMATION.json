@@ -1,0 +1,146 @@
+{
+  "menus": [
+    {
+      "name": "Administrador",
+      "displayName": "Administrador",
+      "icon": "public/menu_icons/ADMINISTRADOR.svg",
+      "iconActive": "public/menu_icons/ADMINISTRADOR_ACTIVE.svg",
+      "path": "/admin",
+      "isActive": true,
+      "position": 1,
+      "menus": [
+        {
+          "name": "Stores",
+          "displayName": "Stores",
+          "icon": "public/menu_icons/STORES.svg",
+          "iconActive": "public/menu_icons/STORES_ACTIVE.svg",
+          "path": "",
+          "isActive": true,
+          "position": 1,
+          "menus": [
+            {
+              "name": "Tiendas",
+              "displayName": "Tiendas",
+              "path": "",
+              "isActive": true,
+              "position": 1
+            },
+            {
+              "name": "Vendors",
+              "displayName": "Vendors",
+              "path": "",
+              "isActive": true,
+              "position": 2
+            }
+          ]
+        },
+        {
+          "name": "Products",
+          "displayName": "Products",
+          "icon": "public/menu_icons/PRODUCTOS.svg",
+          "iconActive": "public/menu_icons/PRODUCTOS_ACTIVE.svg",
+          "path": "",
+          "isActive": true,
+          "position": 2,
+          "menus": [
+            {
+              "name": "Productos y precios",
+              "displayName": "Productos y precios",
+              "path": "",
+              "isActive": true,
+              "position": 1
+            },
+            {
+              "name": "Categorías de productos",
+              "displayName": "Categorías de productos",
+              "path": "",
+              "isActive": true,
+              "position": 2
+            },
+            {
+              "name": "Categorías de precios",
+              "displayName": "Categorías de precios",
+              "path": "",
+              "isActive": true,
+              "position": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordenes",
+      "displayName": "Ordenes",
+      "icon": "public/menu_icons/ORDENES.svg",
+      "iconActive": "public/menu_icons/ORDENES_ACTIVE.svg",
+      "path": "/orders",
+      "isActive": true,
+      "position": 2
+    },
+    {
+      "name": "Sales",
+      "displayName": "Sales",
+      "icon": "public/menu_icons/SALES.svg",
+      "iconActive": "public/menu_icons/SALES_ACTIVE.svg",
+      "path": "/sales",
+      "isActive": true,
+      "position": 3
+    },
+    {
+      "name": "Service",
+      "displayName": "Service",
+      "icon": "public/menu_icons/SERVICE.svg",
+      "iconActive": "public/menu_icons/SERVICE_ACTIVE.svg",
+      "path": "/service",
+      "isActive": true,
+      "position": 4
+    },
+    {
+      "name": "Cuenta",
+      "displayName": "Cuenta",
+      "icon": "public/menu_icons/CUENTA.svg",
+      "iconActive": "public/menu_icons/CUENTA_ACTIVE.svg",
+      "path": "/account",
+      "isActive": true,
+      "position": 5,
+      "menus": [
+        {
+          "name": "Team manager",
+          "displayName": "Team manager",
+          "icon": "public/menu_icons/TEAM_MANAGER.svg",
+          "iconActive": "public/menu_icons/TEAM_MANAGER_ACTIVE.svg",
+          "path": "",
+          "isActive": true,
+          "position": 1
+        },
+        {
+          "name": "Payments",
+          "displayName": "Payments",
+          "icon": "public/menu_icons/PAYMENTS.svg",
+          "iconActive": "public/menu_icons/PAYMENTS_ACTIVE.svg",
+          "path": "",
+          "isActive": true,
+          "position": 2
+        },
+        {
+          "name": "Seguridad",
+          "displayName": "Seguridad",
+          "icon": "public/menu_icons/SEGURIDAD.svg",
+          "iconActive": "public/menu_icons/SEGURIDAD_ACTIVE.svg",
+          "path": "",
+          "isActive": true,
+          "position": 3
+        },
+        {
+          "name": "Reportes",
+          "displayName": "Reportes",
+          "icon": "public/menu_icons/REPORTES.svg",
+          "iconActive": "public/menu_icons/REPORTES_ACTIVE.svg",
+          "path": "",
+          "isActive": true,
+          "position": 4
+        }
+      ]
+    }
+  ]
+}

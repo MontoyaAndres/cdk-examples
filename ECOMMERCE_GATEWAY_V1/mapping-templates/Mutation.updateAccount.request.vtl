@@ -1,0 +1,34 @@
+#set($id = $context.arguments.input.id)
+#set($currentDate = $utils.time.nowISO8601())
+
+#set($isActive = true)
+
+#if(!$utils.isNull($context.arguments.input.isActive))
+  #set($isActive = $context.arguments.input.isActive)
+#end
+
+{
+  "version": "2018-05-29",
+  "operation": "UpdateItem",
+  "key": {
+    "id": $utils.dynamodb.toDynamoDBJson($id)
+  },
+  "update": {
+    "expression": "SET #name = :name, #picture = :picture, #isActive = :isActive, #updatedAt = :updatedAt",
+    "expressionNames": {
+      "#name": "name",
+      "#picture": "picture",
+      "#isActive": "isActive",
+      "#updatedAt": "updatedAt"
+    },
+    "expressionValues": {
+      ":name": $utils.dynamodb.toDynamoDBJson($context.arguments.input.name),
+      ":picture": $utils.dynamodb.toDynamoDBJson($context.arguments.input.picture),
+      ":isActive": $utils.dynamodb.toDynamoDBJson($isActive),
+      ":updatedAt": $util.dynamodb.toDynamoDBJson($currentDate)
+    }
+  },
+  "condition": {
+    "expression": "attribute_exists(id)"
+  }
+}

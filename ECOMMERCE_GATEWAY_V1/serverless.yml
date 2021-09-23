@@ -1,0 +1,803 @@
+service: ecommerce-gateway
+frameworkVersion: '2'
+useDotenv: true
+
+plugins:
+  - serverless-appsync-plugin
+  - serverless-iam-roles-per-function
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  versionFunctions: false
+  lambdaHashingVersion: 20201221
+  profile: ${env:AWS_PROFILE_NAME}
+  region: ${self:custom.region}
+  stage: ${self:custom.stage}
+  environment:
+    STAGE: ${self:custom.stage}  
+
+custom:
+  stage: ${opt:stage, 'develop'}
+  region: ${opt:region, 'us-east-2'}
+  sesEmail: ${env:AWS_SES_EMAIL}
+  appSync:
+    - ${file(serverless.appsync-api.yml)}
+
+package:
+  patterns:
+    - '!package-lock.json'
+    - '!package.json'
+
+functions:
+  saveRole:
+    handler: functions/save-role.handler
+    environment:
+      ACCOUNT_TABLE: !Ref AccountTable
+      ROLE_TABLE: !Ref RoleTable
+      MENU_TABLE: !Ref MenuTable
+      MENU_BY_ROLE_TABLE: !Ref MenuByRoleTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt AccountTable.Arn
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+        Resource: !GetAtt RoleTable.Arn
+      - Effect: Allow
+        Action: dynamodb:BatchGetItem
+        Resource: !GetAtt MenuTable.Arn
+      - Effect: Allow
+        Action: dynamodb:BatchWriteItem
+        Resource: !GetAtt MenuByRoleTable.Arn
+      - Effect: Allow
+        Action: dynamodb:Query
+        Resource: !Sub "${MenuByRoleTable.Arn}/index/byRoleByMenu"
+    tags:
+      Environment: ${self:custom.stage}
+      Name: save-role
+      tradeproject: ECOMMERCE_GATEWAY
+
+  searchersByRole:
+    handler: functions/searchers-by-role.handler
+    iamRoleStatements:
+      - Effect: Allow
+        Action: ssm:GetParameters
+        Resource:
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-app-id
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-admin-key
+    tags:
+      Environment: ${self:custom.stage}
+      Name: searchers-by-role
+      tradeproject: ECOMMERCE_GATEWAY
+
+  syncUserByRole:
+    handler: functions/sync-user-by-role.handler
+    environment:
+      USER_TABLE: !Ref UserTable
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt UserByRoleTable.StreamArn
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt UserTable.Arn
+      - Effect: Allow
+        Action: ssm:GetParameters
+        Resource:
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-app-id
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-admin-key
+    tags:
+      Environment: ${self:custom.stage}
+      Name: sync-user-by-role
+      tradeproject: ECOMMERCE_GATEWAY
+
+  syncInvitationByRole:
+    handler: functions/sync-invitation-by-role.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt InvitationTable.StreamArn
+    iamRoleStatements:
+      - Effect: Allow
+        Action: ssm:GetParameters
+        Resource:
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-app-id
+          - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.stage}/algolia-admin-key
+    tags:
+      Environment: ${self:custom.stage}
+      Name: sync-invitation-by-role
+      tradeproject: ECOMMERCE_GATEWAY
+
+  listMenus:
+    handler: functions/list-menus.handler
+    environment:
+      MENU_TABLE: !Ref MenuTable
+      ROLE_TABLE: !Ref RoleTable
+      USER_BY_ROLE_TABLE: !Ref UserByRoleTable
+      MENU_BY_ROLE_TABLE: !Ref MenuByRoleTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+          - dynamodb:BatchGetItem
+        Resource: !GetAtt MenuTable.Arn
+      - Effect: Allow
+        Action: dynamodb:Query
+        Resource:
+          - !Sub "${UserByRoleTable.Arn}/index/byUserByRole"
+          - !Sub "${MenuByRoleTable.Arn}/index/byRoleByMenu"
+          - !Sub "${RoleTable.Arn}/index/byAccountId"
+    tags:
+      Environment: ${self:custom.stage}
+      Name: list-menus
+      tradeproject: ECOMMERCE_GATEWAY
+
+  listUsers:
+    handler: functions/list-users.handler
+    environment:
+      USER_TABLE: !Ref UserTable
+      ACCOUNT_BY_USER_TABLE: !Ref AccountByUserTable
+      ACCOUNT_TABLE: !Ref AccountTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt UserTable.Arn
+      - Effect: Allow
+        Action: dynamodb:BatchGetItem
+        Resource: !GetAtt AccountTable.Arn
+      - Effect: Allow
+        Action: dynamodb:Query
+        Resource: !Sub "${AccountByUserTable.Arn}/index/byUserByAccount"
+    tags:
+      Environment: ${self:custom.stage}
+      Name: list-users
+      tradeproject: ECOMMERCE_GATEWAY
+
+  listRoles:
+    handler: functions/list-roles.handler
+    environment:
+      ROLE_TABLE: !Ref RoleTable
+      USER_BY_ROLE_TABLE: !Ref UserByRoleTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:BatchGetItem
+        Resource: !GetAtt RoleTable.Arn
+      - Effect: Allow
+        Action: dynamodb:Query
+        Resource:
+          - !Sub "${UserByRoleTable.Arn}/index/byUserByRole"
+          - !Sub "${RoleTable.Arn}/index/byAccountId"
+    tags:
+      Environment: ${self:custom.stage}
+      Name: list-roles
+      tradeproject: ECOMMERCE_GATEWAY
+
+  saveUser:
+    handler: functions/save-user.handler
+    environment:
+      USER_TABLE: !Ref UserTable
+      COGNITO_USER_POOL_CLIENT_ID: !Ref WebUserPoolClient
+      COGNITO_USER_POOL: !Ref CognitoUserPool
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+        Resource: !GetAtt UserTable.Arn
+      - Effect: Allow
+        Action:
+          - cognito-idp:SignUp
+          - cognito-idp:AdminUpdateUserAttributes
+          - cognito-idp:ConfirmSignUp
+          - cognito-idp:AdminEnableUser
+          - cognito-idp:AdminDisableUser
+        Resource: !GetAtt CognitoUserPool.Arn
+    tags:
+      Environment: ${self:custom.stage}
+      Name: save-user
+      tradeproject: ECOMMERCE_GATEWAY
+
+  invitation:
+    handler: functions/invitation.handler
+    environment:
+      INVITATION_TABLE: !Ref InvitationTable
+      ROLE_TABLE: !Ref RoleTable
+      USER_TABLE: !Ref UserTable
+      ACCOUNT_TABLE: !Ref AccountTable
+      ACCOUNT_BY_USER_TABLE: !Ref AccountByUserTable
+      USER_BY_ROLE_TABLE: !Ref UserByRoleTable
+      COGNITO_USER_POOL: !Ref CognitoUserPool
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:PutItem
+        Resource:
+          - !GetAtt InvitationTable.Arn
+          - !GetAtt AccountByUserTable.Arn
+          - !GetAtt UserByRoleTable.Arn
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource:
+          - !GetAtt AccountTable.Arn
+          - !GetAtt RoleTable.Arn
+          - !GetAtt UserTable.Arn
+          - !GetAtt InvitationTable.Arn
+      - Effect: Allow
+        Action: dynamodb:UpdateItem
+        Resource:
+          - !GetAtt InvitationTable.Arn
+          - !GetAtt RoleTable.Arn
+      - Effect: Allow
+        Action: dynamodb:Query
+        Resource:
+          - !Sub "${UserTable.Arn}/index/byEmail"
+      - Effect: Allow
+        Action:
+          - cognito-idp:AdminGetUser
+          - cognito-idp:AdminUpdateUserAttributes
+        Resource: !GetAtt CognitoUserPool.Arn
+    tags:
+      Environment: ${self:custom.stage}
+      Name: invitation
+      tradeproject: ECOMMERCE_GATEWAY
+
+  notifyInvitation:
+    handler: functions/notify-invitation.handler
+    environment:
+      GRAPHQL_API_URL: !Sub ${Ecommercegateway${self:custom.stage}GraphQlApi.GraphQLUrl}
+      ACCOUNT_TABLE: !Ref AccountTable
+      ROLE_TABLE: !Ref RoleTable
+      USER_TABLE: !Ref UserTable
+      SES_EMAIL: ${self:custom.sesEmail}
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt InvitationTable.StreamArn
+    iamRoleStatements:
+      - Effect: Allow
+        Action: appsync:GraphQL
+        Resource: !Sub ${Ecommercegateway${self:custom.stage}GraphQlApi.Arn}/*
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource:
+          - !GetAtt AccountTable.Arn
+          - !GetAtt RoleTable.Arn
+          - !GetAtt UserTable.Arn
+      - Effect: Allow
+        Action:
+          - ses:SendEmail
+          - ses:SendRawEmail
+        Resource: !Sub arn:aws:ses:us-west-2:${AWS::AccountId}:identity/*
+    tags:
+      Environment: ${self:custom.stage}
+      Name: notify-invitation
+      tradeproject: ECOMMERCE_GATEWAY
+
+  verifyInvitationStatus:
+    handler: functions/verify-invitation-status.handler
+    environment:
+      INVITATION_TABLE: !Ref InvitationTable
+    events:
+      - schedule:
+          rate: rate(15 minutes)
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:Query
+        Resource: !Sub "${InvitationTable.Arn}/index/byStatusByExpiration"
+      - Effect: Allow
+        Action: dynamodb:UpdateItem
+        Resource: !GetAtt InvitationTable.Arn
+    tags:
+      Environment: ${self:custom.stage}
+      Name: verify-invitation-status
+      tradeproject: ECOMMERCE_GATEWAY
+
+resources:
+  Resources:
+    AccountTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: account-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    UserTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: accountId
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: byAccountId
+            KeySchema:
+              - AttributeName: accountId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: byEmail
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: user-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    AccountByUserTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: accountId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: byAccountByUser
+            KeySchema:
+              - AttributeName: accountId
+                KeyType: HASH
+              - AttributeName: userId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: byUserByAccount
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: accountId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: account-by-user-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    RoleTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: accountId
+            KeyType: RANGE
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: accountId
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: byAccountId
+            KeySchema:
+              - AttributeName: accountId
+                KeyType: HASH
+              - AttributeName: id
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: role-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    MenuTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: parentId
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: byParentId
+            KeySchema:
+              - AttributeName: parentId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: menu-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    MenuByRoleTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: roleId
+            AttributeType: S
+          - AttributeName: menuId
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: byRoleByMenu
+            KeySchema:
+              - AttributeName: roleId
+                KeyType: HASH
+              - AttributeName: menuId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: menu-by-role-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    UserByRoleTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: roleId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: byRoleByUser
+            KeySchema:
+              - AttributeName: roleId
+                KeyType: HASH
+              - AttributeName: userId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: byUserByRole
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: roleId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: user-by-role-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    InvitationTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: accountId
+            AttributeType: S
+          - AttributeName: ownerId
+            AttributeType: S
+          - AttributeName: guestId
+            AttributeType: S
+          - AttributeName: roleId
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: expiration
+            AttributeType: "N"
+        GlobalSecondaryIndexes:
+          - IndexName: byAccount
+            KeySchema:
+              - AttributeName: accountId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: byOwner
+            KeySchema:
+              - AttributeName: ownerId
+                KeyType: HASH
+              - AttributeName: guestId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: byGuest
+            KeySchema:
+              - AttributeName: guestId
+                KeyType: HASH
+              - AttributeName: ownerId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: byRole
+            KeySchema:
+              - AttributeName: roleId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: byStatusByExpiration
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: expiration
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: invitation-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    NotificationTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: userId
+            KeyType: RANGE
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: byUser
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: id
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: notification-table
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      UpdateReplacePolicy: Retain
+      Properties:
+        AutoVerifiedAttributes:
+          - email
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: false
+            RequireNumbers: false
+            RequireUppercase: false
+            RequireSymbols: false
+        UsernameAttributes:
+          - email
+        Schema:
+          - AttributeDataType: String
+            Name: email
+            Required: false
+            Mutable: true
+        UserPoolTags:
+          Environment: ${self:custom.stage}
+          Name: cognito-user-pool
+          tradeproject: ECOMMERCE_GATEWAY
+
+    WebUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref CognitoUserPool
+        ClientName: ecommerce_auth_backend_web
+        RefreshTokenValidity: 30
+        ExplicitAuthFlows:
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        PreventUserExistenceErrors: ENABLED
+
+    IdentityPool:
+      Type: AWS::Cognito::IdentityPool
+      Properties:
+        AllowUnauthenticatedIdentities: true
+        CognitoIdentityProviders:
+          - ClientId: !Ref WebUserPoolClient
+            ProviderName: !GetAtt CognitoUserPool.ProviderName
+
+    CognitoAuthorizedRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - sts:AssumeRoleWithWebIdentity
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+                ForAnyValue:StringLike:
+                  "cognito-identity.amazonaws.com:amr": authenticated
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: cognito-authorized-role
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    CognitoUnAuthorizedRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - sts:AssumeRoleWithWebIdentity
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+                ForAnyValue:StringLike:
+                  "cognito-identity.amazonaws.com:amr": unauthenticated
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: cognito-unauthorized-role
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+    IdentityPoolRoleMapping:
+      Type: AWS::Cognito::IdentityPoolRoleAttachment
+      Properties:
+        IdentityPoolId: !Ref IdentityPool
+        Roles:
+          authenticated: !GetAtt CognitoAuthorizedRole.Arn
+          unauthenticated: !GetAtt CognitoUnAuthorizedRole.Arn
+
+    AssetsBucket:
+      Type: AWS::S3::Bucket
+      DeletionPolicy: Retain
+      Properties:
+        CorsConfiguration:
+          CorsRules:
+            - AllowedMethods:
+                - GET
+                - HEAD
+                - PUT
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              ExposedHeaders:
+                - 'x-amz-server-side-encryption'
+                - 'x-amz-request-id'
+                - 'x-amz-id-2'
+                - 'ETag'
+              MaxAge: 3000
+        Tags:
+          - Key: Environment
+            Value: ${self:custom.stage}
+          - Key: Name
+            Value: assets-bucket
+          - Key: tradeproject
+            Value: ECOMMERCE_GATEWAY
+
+  Outputs:
+    AwsStage:
+      Value: ${self:custom.stage}
+
+    AwsRegion:
+      Value: ${self:custom.region}
+
+    CognitoUserPoolId:
+      Value: !Ref CognitoUserPool
+
+    WebCognitoUserPoolClientId:
+      Value: !Ref WebUserPoolClient

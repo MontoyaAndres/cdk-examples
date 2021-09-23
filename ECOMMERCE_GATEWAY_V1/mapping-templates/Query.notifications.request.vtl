@@ -1,0 +1,20 @@
+#set($userId = $context.identity.username)
+
+#if ($utils.isNull($userId))
+  $utils.unauthorized()
+#end
+
+{
+  "version": "2018-05-29",
+  "operation": "Query",
+  "query": {
+    "expression": "userId = :userId",
+    "expressionValues": {
+      ":userId": $utils.dynamodb.toDynamoDBJson($userId)
+    }
+  },
+  "index": "byUser",
+  "scanIndexForward": false,
+  "consistentRead": false,
+  "select": "ALL_ATTRIBUTES"
+}

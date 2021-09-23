@@ -1,0 +1,28 @@
+#set($id = $context.arguments.input.id)
+#set($currentDate = $utils.time.nowISO8601())
+
+#set($isActive = true)
+
+#if(!$utils.isNull($context.arguments.input.isActive))
+  #set($isActive = $context.arguments.input.isActive)
+#end
+
+{
+  "version": "2018-05-29",
+  "operation": "PutItem",
+  "key": {
+    "id": $utils.dynamodb.toDynamoDBJson($id)
+  },
+  "attributeValues": {
+    "__typename": $utils.dynamodb.toDynamoDBJson("Account"),
+    "id": $utils.dynamodb.toDynamoDBJson($id),
+    "name": $utils.dynamodb.toDynamoDBJson($context.arguments.input.name),
+    "picture": $utils.dynamodb.toDynamoDBJson($context.arguments.input.picture),
+    "isActive": $utils.dynamodb.toDynamoDBJson($isActive),
+    "createdAt": $utils.dynamodb.toDynamoDBJson($currentDate),
+    "updatedAt": $utils.dynamodb.toDynamoDBJson($currentDate)
+  },
+  "condition": {
+    "expression": "attribute_not_exists(id)"
+  }
+}

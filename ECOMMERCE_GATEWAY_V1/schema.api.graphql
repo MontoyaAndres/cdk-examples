@@ -1,0 +1,216 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  account(accountId: ID!): Account
+  user(userId: ID): User
+  menus(accountId: ID): [Menu]
+  rolesByUser(accountId: ID!, userId: ID): [Role]
+  rolesByAccount(accountId: ID!): [Role]
+  usersByRole(input: UsersByRoleInput!): UsersByRolePage
+  invitationsByRole(input: InvitationsByRoleInput!): InvitationsByRolePage
+  notifications: [Notification]
+}
+
+type Mutation {
+  createAccount(input: AccountInput!): Boolean
+    @aws_auth(cognito_groups: ["SuperAdmin"])
+  updateAccount(input: AccountInput!): Boolean
+    @aws_auth(cognito_groups: ["SuperAdmin"])
+  createRole(input: CreateRoleInput!): Boolean
+  updateRole(input: UpdateRoleInput!): Boolean
+  registerUser(input: RegisterUserInput!): Boolean @aws_iam
+  confirmUser(input: ConfirmUserInput!): Boolean @aws_iam
+  updateUser(input: UpdateUserInput!): Boolean
+  createInvitation(input: CreateInvitationInput): Boolean
+  updateInvitation(input: UpdateInvitationInput): Boolean @aws_iam
+  resendInvitation(input: ResendInvitationInput): Boolean
+  deleteInvitation(input: DeleteInvitationInput): Boolean
+  notifyEvent(input: NotifyEvent): Notification! @aws_iam
+}
+
+type Subscription {
+  onNotified(userId: ID!): Notification
+    @aws_subscribe(mutations: ["notifyEvent"])
+}
+
+type Account {
+  id: ID!
+  name: String!
+  picture: String!
+  isActive: Boolean!
+}
+
+type Role {
+  id: ID!
+  name: String!
+  isActive: Boolean!
+  usersAmount: Int
+  menus: [Menu]
+}
+
+type Menu {
+  id: ID!
+  parentId: ID
+  name: String!
+  displayName: String
+  icon: String
+  iconActive: String
+  path: String
+  isActive: Boolean!
+  position: Int!
+  additionalInfo: AWSJSON
+  permissions: [String]
+  menus: [Menu]
+}
+
+type User {
+  id: ID!
+  name: String!
+  lastName: String!
+  email: AWSEmail!
+  picture: String
+  status: String!
+  accounts: [Account]
+}
+
+type Invitation {
+  id: ID!
+  status: String
+  email: AWSEmail
+  expirationDate: AWSDateTime
+  date: AWSDateTime
+}
+
+type Notification @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  userId: ID!
+  type: NotificationType!
+  action: NotificationAction!
+  title: String!
+  description: String
+  picture: String
+  additionalInfo: AWSJSON
+}
+
+type UsersByRolePage {
+  data: [User]
+  page: Int
+  size: Int
+  totalElements: Int
+  totalPages: Int
+}
+
+type InvitationsByRolePage {
+  data: [Invitation]
+  page: Int
+  size: Int
+  totalElements: Int
+  totalPages: Int
+}
+
+input AccountInput {
+  id: ID!
+  name: String!
+  picture: String!
+  isActive: Boolean
+}
+
+input CreateRoleInput {
+  accountId: ID!
+  name: String!
+  isActive: Boolean
+  menus: [ID!]!
+}
+
+input UpdateRoleInput {
+  id: ID!
+  accountId: ID!
+  name: String!
+  isActive: Boolean
+  menus: [ID!]!
+}
+
+input RegisterUserInput {
+  name: String!
+  lastName: String!
+  email: AWSEmail!
+  password: String!
+}
+
+input ConfirmUserInput {
+  userId: ID!
+  code: String!
+}
+
+input UpdateUserInput {
+  userId: ID
+  name: String
+  lastName: String
+  email: AWSEmail
+  picture: String
+  status: String
+}
+
+input CreateInvitationInput {
+  accountId: ID!
+  roleId: ID!
+  expiration: Int!
+  emails: [AWSEmail!]!
+}
+
+input UpdateInvitationInput {
+  id: ID!
+  status: InvitationStatus!
+  guestId: ID
+}
+
+input ResendInvitationInput {
+  id: ID!
+}
+
+input DeleteInvitationInput {
+  id: ID!
+}
+
+input UsersByRoleInput {
+  roleId: ID!
+  userStatus: String!
+  search: String
+  page: Int
+  size: Int
+}
+
+input InvitationsByRoleInput {
+  roleId: ID!
+  page: Int
+  size: Int
+}
+
+input NotifyEvent {
+  id: ID!
+  userId: ID!
+  type: NotificationType!
+  action: NotificationAction!
+  title: String!
+  description: String
+  picture: String
+  additionalInfo: AWSJSON
+}
+
+enum InvitationStatus {
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  INVITATION
+}
+
+enum NotificationAction {
+  REQUEST
+  APPROVED
+  REJECTED
+}
